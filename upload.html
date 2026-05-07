@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitMatch - Resultado</title>
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif; }
+        body{ background: linear-gradient(135deg, #fff1f5, #fff7ed); min-height:100vh; padding:30px; }
+        .container{ max-width:600px; margin:auto; background:white; padding:40px; border-radius:30px; box-shadow:0 20px 40px rgba(0,0,0,0.08); text-align: center; }
+        h1{ font-size:32px; color:#1f2937; margin-bottom:10px; }
+        .subtitulo{ color:#6b7280; margin-bottom:30px; font-size:16px; }
+        select{ width:100%; padding:14px; margin-bottom:20px; border-radius:14px; border:1px solid #fbcfe8; background:#fffafb; font-size:16px; outline:none; }
+        button{ width:100%; padding:16px; background:linear-gradient(90deg, #fb7185, #f97316); color:white; border:none; border-radius:14px; font-size:17px; cursor:pointer; font-weight: bold; }
+        .resultado{ margin-top:25px; padding:25px; background:linear-gradient(180deg, #fff1f2, #fff7ed); border-radius:20px; font-size:22px; color:#1f2937; font-weight:bold; }
+        .btn-voltar{ display:block; margin-top:20px; color:#fb7185; text-decoration:none; font-size:14px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Descubra seu Tamanho</h1>
+    <p class="subtitulo">Selecione a categoria da peça para ver o tamanho ideal baseado nas suas medidas.</p>
+
+    <select id="categoria">
+        <option value="Camisa">Camisa / Camiseta</option>
+        <option value="Calça">Calça</option>
+        <option value="Vestido">Vestido</option>
+        <option value="Saia">Saia</option>
+        <option value="Casaco">Casaco / Jaqueta</option>
+        <option value="Macacão">Macacão</option>
+        <option value="Sapato">Tênis / Sandália</option>
+    </select>
+
+    <button onclick="analisar()">Descobrir tamanho ideal</button>
+
+    <div class="resultado" id="resultado">Resultado aparecerá aqui</div>
+    
+    <a href="index.html" class="btn-voltar">← Alterar minhas medidas</a>
+</div>
+
+<script>
+function analisar(){
+    let medidasSalvas = localStorage.getItem("medidasUsuario");
+    if(!medidasSalvas){
+        document.getElementById("resultado").innerHTML = "Nenhuma medida encontrada.";
+        return;
+    }
+
+    let medidas = JSON.parse(medidasSalvas);
+    let sexo = medidas.sexo;
+    let busto = Number(medidas.busto);
+    let quadril = Number(medidas.quadril);
+    let categoria = document.getElementById("categoria").value;
+    let tamanhoFinal = "";
+
+    if(sexo === "feminino"){
+        const tabelaFem = [
+            {label: "PP (34)", busto: 80, quadril: 86}, {label: "P (36)", busto: 84, quadril: 90},
+            {label: "P (38)", busto: 88, quadril: 94}, {label: "M (40)", busto: 92, quadril: 98},
+            {label: "M (42)", busto: 96, quadril: 102}, {label: "G (44)", busto: 100, quadril: 106},
+            {label: "G (46)", busto: 104, quadril: 110}, {label: "GG/G1 (48)", busto: 108, quadril: 114},
+            {label: "GG/G1 (50)", busto: 112, quadril: 118}, {label: "G2 (52)", busto: 118, quadril: 124},
+            {label: "G2 (54)", busto: 124, quadril: 130}, {label: "G3 (56)", busto: 130, quadril: 136},
+            {label: "G3 (58)", busto: 136, quadril: 142}, {label: "G4 (60)", busto: 142, quadril: 148},
+            {label: "G4 (62)", busto: 148, quadril: 154}
+        ];
+        if(["Camisa", "Vestido", "Casaco", "Macacão"].includes(categoria)){
+            let busca = tabelaFem.find(t => busto <= t.busto);
+            tamanhoFinal = busca ? busca.label : "G4+";
+        } else if(["Calça", "Saia"].includes(categoria)){
+            let busca = tabelaFem.find(t => quadril <= t.quadril);
+            tamanhoFinal = busca ? busca.label : "G4+";
+        }
+    } else {
+        const tabelaMasc = [
+            {label: "PP (36)", torax: 92, quadril: 90}, {label: "P (38)", torax: 96, quadril: 94},
+            {label: "M (40)", torax: 100, quadril: 98}, {label: "M (42)", torax: 104, quadril: 102},
+            {label: "G (44)", torax: 108, quadril: 106}, {label: "G (46)", torax: 112, quadril: 110},
+            {label: "GG (48)", torax: 116, quadril: 114}, {label: "GG (50)", torax: 120, quadril: 118},
+            {label: "EGG (52)", torax: 124, quadril: 122}, {label: "EGG (54)", torax: 128, quadril: 126},
+            {label: "XG (56)", torax: 132, quadril: 130}, {label: "XG (58)", torax: 136, quadril: 134},
+            {label: "XGG (60)", torax: 140, quadril: 138}, {label: "XGG (62)", torax: 144, quadril: 142}
+        ];
+        if(["Camisa", "Casaco", "Macacão"].includes(categoria)){
+            let busca = tabelaMasc.find(t => busto <= t.torax);
+            tamanhoFinal = busca ? busca.label : "62+";
+        } else if(["Calça"].includes(categoria)){
+            let busca = tabelaMasc.find(t => quadril <= t.quadril);
+            tamanhoFinal = busca ? busca.label : "62+";
+        }
+    }
+
+    if(categoria === "Sapato"){
+        let pe = Number(medidas.pe);
+        if(pe <= 23) tamanhoFinal = "35";
+        else if(pe <= 24) tamanhoFinal = "36";
+        else if(pe <= 25) tamanhoFinal = "37";
+        else if(pe <= 26) tamanhoFinal = "38";
+        else tamanhoFinal = "39/40";
+    }
+
+    document.getElementById("resultado").innerHTML = "Seu tamanho ideal: " + tamanhoFinal;
+}
+</script>
+</body>
+</html>
